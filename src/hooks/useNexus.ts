@@ -13,7 +13,7 @@ export function useUser(userId: string | null) {
       return data;
     },
     enabled: !!userId,
-    refetchInterval: 5000, // Polling suave para atualizar saldo
+    refetchInterval: 5000,
   });
 }
 
