@@ -52,3 +52,40 @@ export function useTransfer() {
     }
   });
 }
+
+
+// Nova função para chamar o endpoint de criação
+export const createClient = async (data: { fullName: string; email: string; pixKey: string }) => {
+  const response = await api.post("/clients", data);
+  return response.data;
+};
+
+// Novo Hook de Mutação
+export function useCreateUser() {
+  return useMutation({
+    mutationFn: createClient,
+    onSuccess: () => {
+      toast.success("Conta Criada!", {
+        description: "Bem-vindo ao Nexus. Você recebeu R$ 100.000 de bônus!"
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao criar conta", {
+        description: error.response?.data?.message || "Tente outro e-mail ou chave PIX."
+      });
+    }
+  });
+}
+
+export function useTransactions(userId: string | null) {
+  return useQuery({
+    queryKey: ["transactions", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data } = await api.get(`/transactions/${userId}`);
+      return data;
+    },
+    enabled: !!userId,
+    refetchInterval: 5000,
+  });
+}
