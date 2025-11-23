@@ -9,7 +9,9 @@ export function Card({ children, className, hover = false }: { children: React.R
     )}>
       {/* Noise Overlay */}
       <div className="absolute inset-0 bg-noise z-0" />
-      <div className="relative z-10">{children}</div>
+      
+      {/* 👇 ADICIONADO: h-full para garantir que o conteúdo expanda */}
+      <div className="relative z-10 h-full w-full">{children}</div>
     </div>
   );
 }

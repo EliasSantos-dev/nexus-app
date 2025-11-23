@@ -74,7 +74,7 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.get(`http://localhost:3001/api/clients/pix/${pix}`);
+      const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/clients/pix/${pix}`);
       localStorage.setItem("nexus_user_id", data.id);
       router.push("/dashboard");
     } catch (err) {

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
 
-const api = axios.create({ baseURL: "http://localhost:3001/api" });
+const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 export function useUser(userId: string | null) {
   return useQuery({

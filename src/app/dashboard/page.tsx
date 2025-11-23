@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { useUser, useTransfer, useTransactions } from "@/hooks/useNexus";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function Dashboard() {
@@ -27,28 +27,39 @@ export default function Dashboard() {
   const transfer = useTransfer();
 
   // Processamento dos dados para o Gráfico
-  const chartData = useMemo(() => {
-    if (!transactions) return [];
-    
-    // Agrupa por dia (simplificado)
-    const groups: Record<string, { name: string, entrada: number, saida: number }> = {};
-    
-    // Pega as últimas transações e inverte para ordem cronológica
-    [...transactions].reverse().forEach((t: any) => {
-      const date = format(new Date(t.createdAt), "dd/MM", { locale: ptBR });
-      if (!groups[date]) groups[date] = { name: date, entrada: 0, saida: 0 };
-      
-      const val = Number(t.amount);
-      if (t.receiverId === userId) {
-        groups[date].entrada += val;
-      } else {
-        groups[date].saida += val;
-      }
+ const chartData = useMemo(() => {
+    // 1. Cria os últimos 7 dias (Array de datas) para garantir que o eixo X sempre exista
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = subDays(new Date(), 6 - i); // De 6 dias atrás até hoje
+      return format(d, "dd/MM", { locale: ptBR });
     });
 
-    return Object.values(groups).slice(-7); // Últimos 7 dias movimentados
-  }, [transactions, userId]);
+    // 2. Inicializa o mapa com valores zerados
+    const stats = last7Days.reduce((acc, date) => {
+      acc[date] = { name: date, entrada: 0, saida: 0 };
+      return acc;
+    }, {} as Record<string, any>);
 
+    // 3. Preenche com as transações reais (se houver)
+    if (transactions) {
+      transactions.forEach((t: any) => {
+        const date = format(new Date(t.createdAt), "dd/MM", { locale: ptBR });
+        
+        // Só soma se a data estiver no nosso intervalo de 7 dias
+        if (stats[date]) {
+          const val = Number(t.amount);
+          if (t.receiverId === userId) {
+            stats[date].entrada += val;
+          } else {
+            stats[date].saida += val;
+          }
+        }
+      });
+    }
+
+    // Retorna o array garantido de 7 itens
+    return Object.values(stats);
+  }, [transactions, userId]);
   const handleTransfer = (e: React.FormEvent) => {
     e.preventDefault();
     transfer.mutate({ senderId: userId, receiverPix: toPix, amount });
